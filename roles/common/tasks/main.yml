@@ -1,0 +1,9 @@
+- name: Add task cleanup-ubuntu.yml
+  import_tasks: cleanup-ubuntu.yml
+
+- name: Add task renew-hostkey.yml
+  import_tasks: renew-hostkey.yml
+  tags: [ never, hostkey ]
+
+- name: Add task change-mirror.yml
+  import_tasks: change-mirror.yml

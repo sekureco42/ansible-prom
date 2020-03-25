@@ -1,0 +1,42 @@
+- name: Make sure config directory exist
+  file:
+    path: /data/snmp-exporter
+    state: directory
+    recurse: yes
+    owner: root
+    group: root 
+    mode: '0755'
+
+# This assumes that snmp-generator created snmp.yml!!!
+- name: Copy snmp-exporter config file to destination
+  copy:
+    remote_src: yes
+    src: /data/snmp-generator/snmp.yml
+    dest: /data/snmp-exporter/snmp.yml
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Create a dedicated network for prometheus
+  docker_network:
+    driver: bridge
+    name: prometheus_nw
+
+- name: Create/Start SNMP exporter container
+  docker_container:
+    name: snmp-exporter
+    image: prom/snmp-exporter
+    state: started
+    restart: yes
+    restart_policy: always
+    detach: yes
+    networks:
+      - name: prometheus_nw
+    ports:
+      - "9116:9116"
+    volumes:
+      - /data/snmp-exporter/snmp.yml:/etc/snmp_exporter/snmp.yml:ro
+    comparisons:
+      image: ignore   # don't restart containers with older versions of the image
+      env: strict   # we want precisely this environment
+      volumes: allow_more_present   # if there are more volumes, that's ok, as long as `/tmp:/tmp` is there

@@ -1,0 +1,14 @@
+- hosts: all
+  roles:
+    - common
+    - docker
+    - snmp-generator
+    - snmp-exporter
+    - blackbox-exporter
+    - node-exporter
+    - alertmanager
+    - prometheus
+    - grafana
+    - loki
+    - promtail
+    - watchtower

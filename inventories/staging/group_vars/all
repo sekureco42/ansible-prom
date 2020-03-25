@@ -1,0 +1,54 @@
+### Variables for Deployement
+
+# NODE_EXPORTER download URL (on Ubuntu 18.04 is only a realy old version packaged)
+node_exporter_download_url: 'https://github.com/prometheus/node_exporter/releases/download/v1.0.0-rc.0/node_exporter-1.0.0-rc.0.linux-amd64.tar.gz'
+
+# SLACK relevant stuff
+slack_webhook: 'https://slack.example.org/hooks/<hook-token>'
+slack_channel: 'Alertmanager'
+
+# PUSHOVER integration
+pushover_token: '<your-pushover-token>'
+pushover_key: '<your-pushover-key>'
+
+# PING checks
+ping_targets:
+  - 8.8.8.8 # Google DNS
+  - dns9.quad9.net
+
+# HTTP checks
+http_urls:
+  - https://github.com
+
+# NODE exporters
+node_targets:
+  - '<dns-resolvable-hostname-of-your-monitoring-system>:9100'
+
+# SNMP check for Fortigate will be done with SNMPv3
+snmp_fortigate_username: '<snmp user name>'
+snmp_fortigate_password: '<snmp password>'
+snmp_fortigate_priv_password: '<snmp priv password>'
+snmp_fortigate_priv_protocol: 'AES' # DES also possible but not recommended 
+snmp_fortigate_auth_protocol: 'SHA' # DES also possible but not recommended
+
+# SNMP checks for Fortigate
+snmp_fortigates:
+  - <fqdn of your fortigate>
+
+# SNMP check for switches will be done with SNMPv1
+snmp_switch_community: '<snmpv1 community>'
+
+# SNMP checks for switches
+snmp_switches:
+  - <your switch or generic network device>
+
+# SNMP check for Synology will be done with SNMPv3
+snmp_synology_username: '<snmp user name>'
+snmp_synology_password: '<snmp password>'
+snmp_synology_priv_password: '<snmp priv password>'
+snmp_synology_priv_protocol: 'AES' # DES also possible but not recommended
+snmp_synology_auth_protocol: 'SHA' # MD5 also possible but not recommended
+
+# SNMP checks for Synology systems
+snmp_synologys:
+  - <your synology NAS>

@@ -1,0 +1,36 @@
+- name: Make sure data directory exist
+  file:
+    path: /data/grafana/data
+    state: directory
+    recurse: yes
+    owner: root
+    group: root 
+    mode: '0777'
+
+- name: Create a dedicated network for prometheus
+  docker_network:
+    driver: bridge
+    name: prometheus_nw
+
+- name: Create/Start grafana container
+  docker_container:
+    name: grafana
+    image: grafana/grafana
+    state: started
+    restart: yes
+    restart_policy: always
+    detach: yes
+    networks:
+      - name: prometheus_nw
+    ports:
+      - "3000:3000"
+    volumes:
+      - /data/grafana/data:/var/lib/grafana
+    comparisons:
+      image: ignore   # don't restart containers with older versions of the image
+      env: strict   # we want precisely this environment
+      volumes: allow_more_present   # if there are more volumes, that's ok, as long as `/tmp:/tmp` is there
+
+# ENV: -e "GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource" 
+#   env:
+#     GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource

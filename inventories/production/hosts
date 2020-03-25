@@ -1,0 +1,9 @@
+# Example hosts file for production. 
+
+[mon]
+# Host name mon(itoring)prod(uction)
+monprod   ansible_host=192.168.0.47   ansible_become=yes
+
+[mon:vars]
+  # Ubuntu 18.04 comes with python2 as default so define to use python3
+  ansible_python_interpreter=/usr/bin/python3

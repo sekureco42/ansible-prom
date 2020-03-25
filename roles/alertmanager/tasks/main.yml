@@ -1,0 +1,56 @@
+- name: Make sure config directory exist
+  file:
+    path: /data/alertmanager/config
+    state: directory
+    recurse: yes
+    owner: root
+    group: root 
+    mode: '0755'
+
+- name: Make sure data directory exist
+  file:
+    path: /data/alertmanager/data
+    state: directory
+    recurse: yes
+    owner: root
+    group: root 
+    mode: '0777'
+
+- name: Copy alertmanager config file to destination
+  template:
+    src: "{{ role_path }}/files/alertmanager.j2"
+    dest: /data/alertmanager/config/alertmanager.yml
+    owner: root
+    group: root
+    mode: '0644'
+    variable_start_string: '{[{'
+    variable_end_string: '}]}'
+
+- name: Create a dedicated network for prometheus
+  docker_network:
+    driver: bridge
+    name: prometheus_nw
+
+- name: Create/Start alertmanager container
+  docker_container:
+    name: alertmanager
+    image: prom/alertmanager
+    state: started
+    restart: yes
+    restart_policy: always
+    detach: yes
+    networks:
+      - name: prometheus_nw
+    ports:
+      - "9093:9093" # for debugging purpose, eg. curl -H "Content-Type: application/json" -d '[{"status": "firing", "labels":{"alertname":"TestAlert1"}}]' localhost:9093/alertmanager/api/v1/alerts
+    command: [
+      "--config.file=/etc/alertmanager/alertmanager.yml",
+      "--storage.path=/alertmanager"
+    ]
+    volumes:
+      - /data/alertmanager/config/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - /data/alertmanager/data:/alertmanager
+    comparisons:
+      image: ignore   # don't restart containers with older versions of the image
+      env: strict   # we want precisely this environment
+      volumes: allow_more_present   # if there are more volumes, that's ok, as long as `/tmp:/tmp` is there

@@ -1,0 +1,18 @@
+- name: Remove some config files to "cleanup" the system
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /etc/update-motd.d/10-help-text
+    - /etc/update-motd.d/50-motd-news
+    - /etc/update-motd.d/80-esm
+    - /etc/update-motd.d/80-livepatch
+
+# Cleanup tasks.
+- name: Remove Calling Home functions
+  apt:
+    name:
+      - popularity-contest
+      - ubuntu-report
+    state: absent
+

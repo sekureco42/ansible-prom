@@ -1,0 +1,66 @@
+- name: Make sure config directory exist
+  file:
+    path: /data/prometheus/config
+    state: directory
+    recurse: yes
+    owner: root
+    group: root 
+    mode: '0755'
+
+- name: Make sure data directory exist
+  file:
+    path: /data/prometheus/data
+    state: directory
+    recurse: yes
+    owner: root
+    group: root 
+    mode: '0777'
+
+- name: Copy prometheus config file to destination
+  template:
+    src: "{{ role_path }}/files/prometheus.j2"
+    dest: "/data/prometheus/config/prometheus.yml"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Copy prometheus config directories to destination
+  copy:
+    src: "{{ role_path }}/files/{{ item }}"
+    dest: "/data/prometheus/config"
+    owner: root
+    group: root
+    mode: '0755'
+  with_items:
+    - rules.d
+
+- name: Create a dedicated network for prometheus
+  docker_network:
+    driver: bridge
+    name: prometheus_nw
+
+- name: Create/Start Prometheus container
+  docker_container:
+    name: prometheus
+    image: prom/prometheus
+    state: started
+    restart: yes
+    restart_policy: always
+    detach: yes
+    networks:
+      - name: prometheus_nw
+    ports:
+      - "9090:9090"
+    command: [
+      "--config.file=/etc/prometheus/prometheus.yml",
+      "--storage.tsdb.path=/prometheus/data",
+      "--storage.tsdb.retention.time=3650d",
+      "--web.enable-lifecycle"
+    ]
+    volumes:
+      - /data/prometheus/config:/etc/prometheus:ro
+      - /data/prometheus/data:/prometheus/data
+    comparisons:
+      image: ignore   # don't restart containers with older versions of the image
+      env: strict   # we want precisely this environment
+      volumes: allow_more_present   # if there are more volumes, that's ok, as long as `/tmp:/tmp` is there

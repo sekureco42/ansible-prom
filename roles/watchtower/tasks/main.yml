@@ -1,0 +1,19 @@
+- name: Create/Start Watchtower container
+  docker_container:
+    name: watchtower
+    image: containrrr/watchtower
+    state: started
+    restart: yes
+    restart_policy: always
+    detach: yes
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    env:
+      WATCHTOWER_CLEANUP="true"
+      WATCHTOWER_NOTIFICATIONS="slack"
+      WATCHTOWER_NOTIFICATION_SLACK_HOOK_URL="{{ slack_webhook }}"
+      WATCHTOWER_NOTIFICATION_SLACK_CHANNEL="{{ slack_channel }}"
+    comparisons:
+      image: ignore   # don't restart containers with older versions of the image
+      env: strict   # we want precisely this environment
+      volumes: allow_more_present   # if there are more volumes, that's ok, as long as `/tmp:/tmp` is there

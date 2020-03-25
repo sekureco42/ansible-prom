@@ -1,0 +1,65 @@
+# Let install base MIBS. Destination is /usr/share/snmp/mibs
+- name: Make sure that base MIBS are installed on host system
+  apt:
+    name:
+      - snmp-mibs-downloader
+    state: present
+
+- name: Make sure mibs directory exist
+  file:
+    path: /data/snmp-generator/mibs
+    state: directory
+    recurse: yes
+    owner: root
+    group: root 
+    mode: '0755'
+
+- name: Copy snmp-generator config file to destination
+  template:
+    src: "{{ role_path }}/files/generator.j2"
+    dest: /data/snmp-generator/generator.yml
+    owner: root
+    group: root
+    mode: '0644'
+
+# Copy previously installed MIBS to target directory
+- name: Copy base MIBS definition on target machine to destination
+  copy:
+    remote_src: yes
+    local_follow: no
+    src: "{{ item }}"
+    dest: /data/snmp-generator/mibs
+    owner: root
+    group: root
+    mode: '0644'
+  with_items:
+    - /usr/share/snmp/mibs/
+    - /var/lib/snmp/mibs/iana/
+    - /var/lib/snmp/mibs/ietf/
+
+# Copy additional MIBS to target directory
+- name: Copy MIBS directory and contents to destination
+  copy:
+    src: "{{ role_path }}/files/mibs"
+    dest: /data/snmp-generator/
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Try to create SNMP config for SNMP exporter container
+  docker_container:
+    name: snmp-generator
+    image: prom/snmp-generator
+    state: started
+    restart: no
+    restart_policy: no
+    detach: no
+    command: [
+      "generate"
+    ]
+    volumes:
+      - /data/snmp-generator/:/opt/
+    comparisons:
+      image: ignore   # don't restart containers with older versions of the image
+      env: strict   # we want precisely this environment
+      volumes: allow_more_present   # if there are more volumes, that's ok, as long as `/tmp:/tmp` is there

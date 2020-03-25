@@ -1,0 +1,19 @@
+- name: Install required system packages
+  apt:
+    update_cache: yes 
+    name:
+      - aptitude
+      - python3-pip
+      - python3-virtualenv
+      - python3-setuptools
+    state: latest
+
+- name: Install pip module manager
+  pip:
+    executable: pip3
+    name: apt-select
+  tags: [ never, mirror ]
+
+- name: Now select swiss mirror for apt packages
+  command: apt-select --country CH
+  tags: [ never, mirror ]

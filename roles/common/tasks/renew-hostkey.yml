@@ -1,0 +1,55 @@
+- name: Check if we already created SSH host keys
+  stat: 
+    path: /etc/ssh/.ssh_host_keys.generated
+  register: ssh_hostkeys_generated
+
+- name: Create list with all SSH host keys
+  find:
+    paths: /etc/ssh
+    patterns: "^ssh_host_.*"
+    use_regex: true
+  register: ssh_hostkeys_to_delete
+  when: ssh_hostkeys_generated.stat.exists == false
+  
+- name: Remove all found SSH host keys
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ ssh_hostkeys_to_delete.files }}"
+  when: ssh_hostkeys_generated.stat.exists == false
+
+- name: Reconfigure SSH server to create new SSH host keys
+  shell: dpkg-reconfigure openssh-server
+  when: ssh_hostkeys_generated.stat.exists == false
+  
+- name: Restart SSH server (to apply new keys)
+  service:
+    name: sshd
+    state: restarted
+  when: ssh_hostkeys_generated.stat.exists == false
+    
+- name: Create tracking file that we renewed SSH keys
+  file:
+    path: /etc/ssh/.ssh_host_keys.generated
+    state: touch
+  when: ssh_hostkeys_generated.stat.exists == false
+
+# Now remove already existing host key from ansible host
+- name: Remove host key from local known_hosts file
+  delegate_to: localhost
+  become: false
+  known_hosts:
+    name: "[{{ansible_host}}]:{{ansible_port}}"
+    state: absent
+  when: ssh_hostkeys_generated.stat.exists == false
+
+# Make sure the host key is in our known_host file
+- name: Ensure ssh host key known
+  delegate_to: localhost
+  become: false
+  lineinfile:
+    dest: ~/.ssh/known_hosts
+    create: yes
+    state: present
+    line: "{{ lookup('pipe', 'ssh-keyscan -t ecdsa -p ' + ansible_port|string + ' ' + ansible_host) }}"
+

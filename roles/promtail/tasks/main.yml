@@ -1,0 +1,44 @@
+- name: Make sure config directory exist
+  file:
+    path: /data/promtail/config
+    state: directory
+    recurse: yes
+    owner: root
+    group: root 
+    mode: '0755'
+
+- name: Copy promtail config file to destination
+  copy:
+    src: "{{ role_path }}/files/promtail.yml"
+    dest: /data/promtail/config/promtail.yml
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Create a dedicated network for prometheus
+  docker_network:
+    driver: bridge
+    name: prometheus_nw
+
+- name: Create/Start promtail container
+  docker_container:
+    name: promtail
+    image: grafana/promtail
+    state: started
+    restart: yes
+    restart_policy: always
+    detach: yes
+    networks:
+      - name: prometheus_nw
+    ports:
+      - "1514:1514"
+      - "9080:9080"
+    command: [
+      "-config.file=/mnt/promtail.yml"
+    ]
+    volumes:
+      - /data/promtail/config:/mnt
+    comparisons:
+      image: ignore   # don't restart containers with older versions of the image
+      env: strict   # we want precisely this environment
+      volumes: allow_more_present   # if there are more volumes, that's ok, as long as `/tmp:/tmp` is there
