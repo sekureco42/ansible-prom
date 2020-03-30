@@ -26,7 +26,7 @@ Note: **this is not meant for productive deployments!!** All containers are acce
 # How do I use it?
 1. Clone this repo
 ```bash
-git clone https://github.com/<path>/ansible-prom.git
+git clone https://github.com/sekureco42/ansible-prom.git
 cd ansible-prom
 ```
 2. Edit `inventories\staging\hosts` and modify entry according your target host
