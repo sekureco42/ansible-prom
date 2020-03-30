@@ -36,7 +36,7 @@ cd ansible-prom
    * Adapt `ping_targets` to include all systems which should monitored by ping (icmp)
    * Adapt `http_urls` to include all systems which should monitored by http(s)
    * Adapt `node_exporter` to include all node exporters which should be scraped by Prometheus.
-     Add here your target host and do not forget to include service port 9100. Note that due the architecture of this installation this host must be resolvable by DNS (host entry on target sytem with interface IP works too - but not with any kind of localhost!!!)
+     Add here your target host and do not forget to include service port `9100`. Note that due the architecture of this installation this host must be resolvable by DNS (host entry on target sytem with interface IP works too - but not with any kind of `localhost`!!!)
    * `snmp_*`: only Fortigate and Synology are supported with SNMPv3, the generic SNMP is using SNMPv1. If you want to change this you have to adapt the snmp generator, details see file `roles\snmp-generator\files\generator.j2` and `roles\snmp-generator\files\generator.yml.sample`
 4. Check if you are able to reach your target host with ansible by issueing following command:
 ```bash
@@ -47,6 +47,8 @@ ansible -i inventories/staging all -m ping
 ```bash
 ansible-playbook -b -i inventories/staging site.yml
 ```
+7. Call http://<your-host>:9090/targets to check status of all exporters (part of Prometheus)
+8. Call http://<your-host>:9090/ for Grafana web interface (you have to add Prometheus and Loki as data sources to Grafana. Use docker names to reference instances like `loki` or `prometheus`)
 
 # Notes/Remarks
 ## Loki
