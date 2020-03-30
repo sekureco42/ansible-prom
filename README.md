@@ -66,3 +66,13 @@ Loki is running in monolithic mode so it is using local file system to save inde
 
 ## promtail
 I've added a simple example to pre process logs to get additional labels in grafana. Have a look at the config file of promtail `roles\promtail\files\promtail.yml`
+
+# Changes
+- 20200330 Removed Synology OIDs which are not known any more?!?
+           Affected:
+           - laNames
+           - laLoadInt
+           - ssCpuUser
+           - ssCpuSystem
+           - ssCpuIdle
+           - memory
